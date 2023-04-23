@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nihs.SimpleMessenger", "Nihs.SimpleMessenger\Nihs.SimpleMessenger.csproj", "{12703BF6-DF2F-46B4-8431-03B73AE9085F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5A76C67F-D831-4598-AA2D-E924791D5769}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nihs.SimpleMessenger.Tests", "Nihs.SimpleMessenger.Tests\Nihs.SimpleMessenger.Tests.csproj", "{4615FBED-AA3C-4061-9052-A20C3CBD00B7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".assets", ".assets", "{13183165-C6DF-4B11-81F9-FE0C23BB7170}"
+	ProjectSection(SolutionItems) = preProject
+		.assets\nihs.png = .assets\nihs.png
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12703BF6-DF2F-46B4-8431-03B73AE9085F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12703BF6-DF2F-46B4-8431-03B73AE9085F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12703BF6-DF2F-46B4-8431-03B73AE9085F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12703BF6-DF2F-46B4-8431-03B73AE9085F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4615FBED-AA3C-4061-9052-A20C3CBD00B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4615FBED-AA3C-4061-9052-A20C3CBD00B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4615FBED-AA3C-4061-9052-A20C3CBD00B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4615FBED-AA3C-4061-9052-A20C3CBD00B7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{13183165-C6DF-4B11-81F9-FE0C23BB7170} = {5A76C67F-D831-4598-AA2D-E924791D5769}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {04BC9720-DED0-4209-98D6-509ECD887FCE}
+	EndGlobalSection
+EndGlobal
