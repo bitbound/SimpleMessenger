@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5A76C67F-D831-4598-AA2D-E924791D5769}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nihs.SimpleMessenger.Tests", "Nihs.SimpleMessenger.Tests\Nihs.SimpleMessenger.Tests.csproj", "{4615FBED-AA3C-4061-9052-A20C3CBD00B7}"

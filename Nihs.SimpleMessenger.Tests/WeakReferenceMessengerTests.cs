@@ -36,6 +36,34 @@ public class WeakReferenceMessengerTests
     }
 
     [TestMethod]
+    public async Task Send_GivenSubscriberExplicitlyUnregistered_DoesNotInvokeHandler()
+    {
+        var messenger = new WeakReferenceMessenger();
+        var count = 0;
+
+        var subscriber = new object();
+        messenger.Register<CountObject>(subscriber, obj =>
+        {
+            count += obj.Value;
+            return Task.CompletedTask;
+        });
+
+        await messenger.Send(new CountObject(3));
+        Assert.AreEqual(3, count);
+
+        await messenger.Send(new CountObject(7));
+        Assert.AreEqual(10, count);
+
+        messenger.Unregister<CountObject>(subscriber);
+
+        var exceptions = await messenger.Send(new CountObject(5));
+        // The value should not change here because the subscriber
+        // has been garbage-collected.
+        Assert.AreEqual(10, count);
+        Assert.AreEqual(0, exceptions.Count);
+    }
+
+    [TestMethod]
     public async Task Send_GivenDifferentChannels_MessagesAreSentToCorrectChannels()
     {
         var messenger = new WeakReferenceMessenger();
@@ -91,7 +119,6 @@ public class WeakReferenceMessengerTests
         Assert.AreEqual(7, count3);
         Assert.AreEqual(3, count4);
     }
-
 
     [TestMethod]
     public async Task Send_GivenFrequentMessages_MessagesAreSentToCorrectChannels()
