@@ -64,7 +64,7 @@ public class WeakReferenceMessengerTests
     }
 
     [TestMethod]
-    public async Task Send_GivenDifferentChannels_MessagesAreSentToCorrectChannels()
+    public async Task Send_GivenDifferentChannelsDifferentTypes_MessagesAreSentToCorrectChannels()
     {
         var messenger = new WeakReferenceMessenger();
         var count1 = 0;
@@ -75,6 +75,63 @@ public class WeakReferenceMessengerTests
         var channel1 = Guid.NewGuid();
         var channel2 = "channel2";
         var channel3 = 5;
+
+        var subscriber1 = new object();
+        var subscriber2 = new object();
+        var subscriber3 = new object();
+
+        messenger.Register(subscriber1, channel1, (CountObject obj) =>
+        {
+            count1 += obj.Value;
+            return Task.CompletedTask;
+        });
+
+        // Same subscriber, different channel.
+        messenger.Register(subscriber1, channel2, (CountObject obj) =>
+        {
+            count2 += obj.Value;
+            return Task.CompletedTask;
+        });
+
+        // Different subscriber, different channel.
+        messenger.Register(subscriber2, channel3, (CountObject obj) =>
+        {
+            count3 += obj.Value;
+            return Task.CompletedTask;
+        });
+
+        // Different subscriber, same channel.
+        messenger.Register(subscriber3, channel1, (CountObject obj) =>
+        {
+            count4 += obj.Value;
+            return Task.CompletedTask;
+        });
+
+        // Counts 1 and 4 should be affected.
+        await messenger.Send(new CountObject(3), channel1);
+        // Count 2 should be affected.
+        await messenger.Send(new CountObject(5), channel2);
+        // Count 3 should be affected.
+        await messenger.Send(new CountObject(7), channel3);
+
+        Assert.AreEqual(3, count1);
+        Assert.AreEqual(5, count2);
+        Assert.AreEqual(7, count3);
+        Assert.AreEqual(3, count4);
+    }
+
+    [TestMethod]
+    public async Task Send_GivenDifferentChannelsSameType_MessagesAreSentToCorrectChannels()
+    {
+        var messenger = new WeakReferenceMessenger();
+        var count1 = 0;
+        var count2 = 0;
+        var count3 = 0;
+        var count4 = 0;
+
+        var channel1 = "channel1";
+        var channel2 = "channel2";
+        var channel3 = "channel3";
 
         var subscriber1 = new object();
         var subscriber2 = new object();
@@ -180,6 +237,23 @@ public class WeakReferenceMessengerTests
         Assert.AreEqual(5 * sendCount, count2);
         Assert.AreEqual(7 * sendCount, count3);
         Assert.AreEqual(3 * sendCount, count4);
+    }
+
+    [TestMethod]
+    public async Task Send_GivenHandlerThrows_ReturnsException()
+    {
+        var messenger = new WeakReferenceMessenger();
+
+        messenger.Register<CountObject>(this, obj =>
+        {
+            throw new InvalidOperationException("Test");
+        });
+
+        var exceptions = await messenger.Send(new CountObject(5));
+
+        Assert.AreEqual(1, exceptions.Count);
+        Assert.IsInstanceOfType(exceptions[0], typeof(InvalidOperationException));
+        Assert.AreEqual("Test", exceptions[0].Message);
     }
 
     private class CountObject
