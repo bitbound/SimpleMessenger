@@ -1,53 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 
 namespace Nihs.SimpleMessenger.Internals;
 
+
 internal class WeakReferenceTable
 {
-    private readonly object _tableLock = new();
+    private readonly SemaphoreSlim _tableLock = new(1, 1);
     private readonly ConditionalWeakTable<object, object?> _weakTable = new();
 
-    internal void AddOrUpdate<TMessageType>(object subscriber, Func<TMessageType, Task> handler)
+    internal async Task AddOrUpdate<TMessageType>(object subscriber, Func<TMessageType, Task> handler)
     {
-        lock (_tableLock)
+        await _tableLock.WaitAsync();
+        try
         {
             _weakTable.AddOrUpdate(subscriber, handler);
         }
+        finally
+        {
+            _tableLock.Release();
+        }
     }
 
-    internal IEnumerable<Func<TMessageType, Task>> GetHandlers<TMessageType>()
+    internal async Task<IEnumerable<Func<TMessageType, Task>>> GetHandlers<TMessageType>()
     {
-        lock (_tableLock)
+        await _tableLock.WaitAsync();
+        try
         {
-            foreach (var kvp in _weakTable.ToArray())
+            var list = new List<Func<TMessageType, Task>>();
+            foreach (var kvp in _weakTable)
             {
                 if (kvp.Value is Func<TMessageType, Task> func)
                 {
-                    yield return func;
+                    list.Add(func);
                 }
             }
+            return list;
+        }
+        finally
+        {
+            _tableLock.Release();
         }
     }
 
-    internal bool Remove(object subscriber)
+    internal async Task<bool> Remove(object subscriber)
     {
-        lock (_tableLock)
+        await _tableLock.WaitAsync();
+        try
         {
             return _weakTable.Remove(subscriber);
         }
+        finally
+        {
+            _tableLock.Release();
+        }
     }
 
-    internal bool TryGetValue(object subscriber, [NotNullWhen(true)] out object? handler)
+    internal async Task<Result<object>> TryGetValue(object subscriber)
     {
-        lock (_tableLock)
+        await _tableLock.WaitAsync();
+        try
         {
-            return _weakTable.TryGetValue(subscriber, out handler);
+            if (_weakTable.TryGetValue(subscriber, out var handler) &&
+                handler is not null)
+            {
+                return Result.Ok(handler);
+            }
+            return Result.Fail<object>("Key not found.");
+        }
+        finally
+        {
+            _tableLock.Release();
         }
     }
 }

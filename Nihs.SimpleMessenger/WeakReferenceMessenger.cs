@@ -26,7 +26,7 @@ public interface IMessenger
     /// <param name="subscriber"></param>
     /// <param name="channel"></param>
     /// <returns></returns>
-    bool IsRegistered<TMessageType, TChannelType>(object subscriber, TChannelType channel)
+    Task<bool> IsRegistered<TMessageType, TChannelType>(object subscriber, TChannelType channel)
         where TMessageType : class
         where TChannelType : IEquatable<TChannelType>;
 
@@ -37,7 +37,7 @@ public interface IMessenger
     /// <typeparam name="TMessageType"></typeparam>
     /// <param name="subscriber"></param>
     /// <returns></returns>
-    bool IsRegistered<TMessageType>(object subscriber)
+    Task<bool> IsRegistered<TMessageType>(object subscriber)
         where TMessageType : class;
 
     /// <summary>
@@ -49,9 +49,9 @@ public interface IMessenger
     /// <param name="channel"></param>
     /// <param name="handler"></param>
     /// <returns></returns>
-    void Register<TMessageType, TChannelType>(
-        object subscriber, 
-        TChannelType channel, 
+    Task Register<TMessageType, TChannelType>(
+        object subscriber,
+        TChannelType channel,
         Func<TMessageType, Task> handler)
             where TMessageType : class
             where TChannelType : IEquatable<TChannelType>;
@@ -64,7 +64,7 @@ public interface IMessenger
     /// <param name="subscriber"></param>
     /// <param name="handler"></param>
     /// <returns></returns>
-    void Register<TMessageType>(object subscriber, Func<TMessageType, Task> handler)
+    Task Register<TMessageType>(object subscriber, Func<TMessageType, Task> handler)
         where TMessageType : class;
 
     /// <summary>
@@ -96,7 +96,7 @@ public interface IMessenger
     /// <param name="subscriber"></param>
     /// <param name="channel"></param>
     /// <returns></returns>
-    void Unregister<TMessageType, TChannelType>(object subscriber, TChannelType channel)
+    Task Unregister<TMessageType, TChannelType>(object subscriber, TChannelType channel)
         where TMessageType : class
         where TChannelType : IEquatable<TChannelType>;
 
@@ -106,7 +106,7 @@ public interface IMessenger
     /// <typeparam name="TMessageType"></typeparam>
     /// <param name="subscriber"></param>
     /// <returns></returns>
-    void Unregister<TMessageType>(object subscriber)
+    Task Unregister<TMessageType>(object subscriber)
         where TMessageType : class;
 }
 
@@ -118,63 +118,64 @@ public interface IMessenger
 public class WeakReferenceMessenger : IMessenger
 {
     private readonly ConcurrentDictionary<CompositeKey, ConcurrentDictionary<object, WeakReferenceTable>> _subscribers = new();
-    private readonly SemaphoreSlim _registrationLock = new(1, 1);
+    private readonly SemaphoreSlim _subscribersLock = new(1, 1);
 
     public static IMessenger Default { get; } = new WeakReferenceMessenger();
 
     /// <inheritdoc />
-    public bool IsRegistered<TMessageType>(object subscriber)
+    public Task<bool> IsRegistered<TMessageType>(object subscriber)
         where TMessageType : class
     {
         return IsRegistered<TMessageType, DefaultChannel>(subscriber, DefaultChannel.Instance);
     }
 
     /// <inheritdoc />
-    public bool IsRegistered<TMessageType, TChannelType>(object subscriber, TChannelType channel)
+    public async Task<bool> IsRegistered<TMessageType, TChannelType>(object subscriber, TChannelType channel)
         where TMessageType : class
         where TChannelType : IEquatable<TChannelType>
     {
-        _registrationLock.Wait();
+        await _subscribersLock.WaitAsync();
         try
         {
             var table = GetWeakReferenceTable<TMessageType, TChannelType>(channel);
-
-            return table.TryGetValue(subscriber, out _);
+            var result = await table.TryGetValue(subscriber);
+            return result.IsSuccess;
         }
         finally
         {
-            _registrationLock.Release();
+            _subscribersLock.Release();
         }
     }
 
     /// <inheritdoc />
-    public void Register<TMessageType>(object subscriber, Func<TMessageType, Task> handler)
+    public Task Register<TMessageType>(object subscriber, Func<TMessageType, Task> handler)
         where TMessageType : class
     {
-        Register(subscriber, DefaultChannel.Instance, handler);
+        return Register(subscriber, DefaultChannel.Instance, handler);
     }
 
     /// <inheritdoc />
-    public void Register<TMessageType, TChannelType>(object subscriber, TChannelType channel, Func<TMessageType, Task> handler)
+    public async Task Register<TMessageType, TChannelType>(object subscriber, TChannelType channel, Func<TMessageType, Task> handler)
         where TMessageType : class
         where TChannelType : IEquatable<TChannelType>
     {
-        _registrationLock.Wait();
+        await _subscribersLock.WaitAsync();
         try
         {
             var table = GetWeakReferenceTable<TMessageType, TChannelType>(channel);
 
-            if (table.TryGetValue(subscriber, out _))
+            var result = await table.TryGetValue(subscriber);
+            if (result.IsSuccess)
             {
                 throw new InvalidOperationException(
                     "Subscriber is already registered to the specified message and channel.");
             }
 
-            table.AddOrUpdate(subscriber, handler);
+            await table.AddOrUpdate(subscriber, handler);
         }
         finally
         {
-            _registrationLock.Release();
+            _subscribersLock.Release();
         }
     }
 
@@ -190,45 +191,53 @@ public class WeakReferenceMessenger : IMessenger
         where TMessageType : class
         where TChannelType : IEquatable<TChannelType>
     {
-        var table = GetWeakReferenceTable<TMessageType, TChannelType>(channel);
-        var handlers = table.GetHandlers<TMessageType>();
-        var exceptions = new List<Exception>();
-
-        foreach (var handler in handlers)
-        {
-            try
-            {
-                await handler.Invoke(message);
-            }
-            catch (Exception ex)
-            {
-                exceptions.Add(ex);
-            }
-        }
-        return exceptions;
-    }
-
-    /// <inheritdoc />
-    public void Unregister<TMessageType>(object subscriber)
-        where TMessageType : class
-    {
-        Unregister<TMessageType, DefaultChannel>(subscriber, DefaultChannel.Instance);
-    }
-
-    /// <inheritdoc />
-    public void Unregister<TMessageType, TChannelType>(object subscriber, TChannelType channel)
-        where TMessageType : class
-        where TChannelType : IEquatable<TChannelType>
-    {
-        _registrationLock.Wait();
+        await _subscribersLock.WaitAsync();
         try
         {
             var table = GetWeakReferenceTable<TMessageType, TChannelType>(channel);
-            table.Remove(subscriber);
+            var handlers = await table.GetHandlers<TMessageType>();
+            var exceptions = new List<Exception>();
+
+            foreach (var handler in handlers)
+            {
+                try
+                {
+                    await handler.Invoke(message);
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            }
+            return exceptions;
         }
         finally
         {
-            _registrationLock.Release();
+            _subscribersLock.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public Task Unregister<TMessageType>(object subscriber)
+        where TMessageType : class
+    {
+        return Unregister<TMessageType, DefaultChannel>(subscriber, DefaultChannel.Instance);
+    }
+
+    /// <inheritdoc />
+    public async Task Unregister<TMessageType, TChannelType>(object subscriber, TChannelType channel)
+        where TMessageType : class
+        where TChannelType : IEquatable<TChannelType>
+    {
+        await _subscribersLock.WaitAsync();
+        try
+        {
+            var table = GetWeakReferenceTable<TMessageType, TChannelType>(channel);
+            await table.Remove(subscriber);
+        }
+        finally
+        {
+            _subscribersLock.Release();
         }
     }
 

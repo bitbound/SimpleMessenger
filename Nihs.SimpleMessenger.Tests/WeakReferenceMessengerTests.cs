@@ -12,7 +12,7 @@ public class WeakReferenceMessengerTests
         await Task.Run(async () =>
         {
             var subscriber = new object();
-            messenger.Register<CountObject>(subscriber, obj =>
+            await messenger.Register<CountObject>(subscriber, obj =>
             {
                 count += obj.Value;
                 return Task.CompletedTask;
@@ -42,7 +42,7 @@ public class WeakReferenceMessengerTests
         var count = 0;
 
         var subscriber = new object();
-        messenger.Register<CountObject>(subscriber, obj =>
+        await messenger.Register<CountObject>(subscriber, obj =>
         {
             count += obj.Value;
             return Task.CompletedTask;
@@ -54,7 +54,7 @@ public class WeakReferenceMessengerTests
         await messenger.Send(new CountObject(7));
         Assert.AreEqual(10, count);
 
-        messenger.Unregister<CountObject>(subscriber);
+        await messenger.Unregister<CountObject>(subscriber);
 
         var exceptions = await messenger.Send(new CountObject(5));
         // The value should not change here because the subscriber
@@ -80,28 +80,28 @@ public class WeakReferenceMessengerTests
         var subscriber2 = new object();
         var subscriber3 = new object();
 
-        messenger.Register(subscriber1, channel1, (CountObject obj) =>
+        await messenger.Register(subscriber1, channel1, (CountObject obj) =>
         {
             count1 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Same subscriber, different channel.
-        messenger.Register(subscriber1, channel2, (CountObject obj) =>
+        await messenger.Register(subscriber1, channel2, (CountObject obj) =>
         {
             count2 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Different subscriber, different channel.
-        messenger.Register(subscriber2, channel3, (CountObject obj) =>
+        await messenger.Register(subscriber2, channel3, (CountObject obj) =>
         {
             count3 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Different subscriber, same channel.
-        messenger.Register(subscriber3, channel1, (CountObject obj) =>
+        await messenger.Register(subscriber3, channel1, (CountObject obj) =>
         {
             count4 += obj.Value;
             return Task.CompletedTask;
@@ -137,28 +137,28 @@ public class WeakReferenceMessengerTests
         var subscriber2 = new object();
         var subscriber3 = new object();
 
-        messenger.Register(subscriber1, channel1, (CountObject obj) =>
+        await messenger.Register(subscriber1, channel1, (CountObject obj) =>
         {
             count1 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Same subscriber, different channel.
-        messenger.Register(subscriber1, channel2, (CountObject obj) =>
+        await messenger.Register(subscriber1, channel2, (CountObject obj) =>
         {
             count2 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Different subscriber, different channel.
-        messenger.Register(subscriber2, channel3, (CountObject obj) =>
+        await messenger.Register(subscriber2, channel3, (CountObject obj) =>
         {
             count3 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Different subscriber, same channel.
-        messenger.Register(subscriber3, channel1, (CountObject obj) =>
+        await messenger.Register(subscriber3, channel1, (CountObject obj) =>
         {
             count4 += obj.Value;
             return Task.CompletedTask;
@@ -195,28 +195,28 @@ public class WeakReferenceMessengerTests
         var subscriber2 = new object();
         var subscriber3 = new object();
 
-        messenger.Register(subscriber1, channel1, (CountObject obj) =>
+        await messenger.Register(subscriber1, channel1, (CountObject obj) =>
         {
             count1 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Same subscriber, different channel.
-        messenger.Register(subscriber1, channel2, (CountObject obj) =>
+        await messenger.Register(subscriber1, channel2, (CountObject obj) =>
         {
             count2 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Different subscriber, different channel.
-        messenger.Register(subscriber2, channel3, (CountObject obj) =>
+        await messenger.Register(subscriber2, channel3, (CountObject obj) =>
         {
             count3 += obj.Value;
             return Task.CompletedTask;
         });
 
         // Different subscriber, same channel.
-        messenger.Register(subscriber3, channel1, (CountObject obj) =>
+        await messenger.Register(subscriber3, channel1, (CountObject obj) =>
         {
             count4 += obj.Value;
             return Task.CompletedTask;
@@ -244,7 +244,7 @@ public class WeakReferenceMessengerTests
     {
         var messenger = new WeakReferenceMessenger();
 
-        messenger.Register<CountObject>(this, obj =>
+        await messenger.Register<CountObject>(this, obj =>
         {
             throw new InvalidOperationException("Test");
         });
