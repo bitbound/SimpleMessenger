@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -13,7 +14,7 @@ internal class WeakReferenceTable
     private readonly object _tableLock = new();
     private readonly ConditionalWeakTable<object, object?> _weakTable = new();
 
-    internal void AddOrUpdate<TMessageType>(object subscriber, Func<TMessageType, Task> handler)
+    internal void AddOrUpdate<TMessage>(object subscriber, Func<TMessage, Task> handler)
     {
         lock (_tableLock)
         {
@@ -21,17 +22,14 @@ internal class WeakReferenceTable
         }
     }
 
-    internal IEnumerable<Func<TMessageType, Task>> GetHandlers<TMessageType>()
+    internal IEnumerable<Func<TMessage, Task>> GetHandlers<TMessage>()
     {
         lock (_tableLock)
         {
-            foreach (var kvp in _weakTable.ToArray())
-            {
-                if (kvp.Value is Func<TMessageType, Task> func)
-                {
-                    yield return func;
-                }
-            }
+            return _weakTable
+                .Select(x => x.Value)
+                .OfType<Func<TMessage, Task>>()
+                .ToImmutableArray();
         }
     }
 
