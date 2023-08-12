@@ -182,6 +182,7 @@ public class WeakReferenceMessengerTests
     {
         var sendCount = 1_000;
         var messenger = new WeakReferenceMessenger();
+        var updateLock = new object();
         var count1 = 0;
         var count2 = 0;
         var count3 = 0;
@@ -197,29 +198,41 @@ public class WeakReferenceMessengerTests
 
         messenger.Register(subscriber1, channel1, (CountObject obj) =>
         {
-            count1 += obj.Value;
-            return Task.CompletedTask;
+            lock (updateLock)
+            {
+                count1 += obj.Value;
+                return Task.CompletedTask;
+            }
         });
 
         // Same subscriber, different channel.
         messenger.Register(subscriber1, channel2, (CountObject obj) =>
         {
-            count2 += obj.Value;
-            return Task.CompletedTask;
+            lock (updateLock)
+            {
+                count2 += obj.Value;
+                return Task.CompletedTask;
+            }
         });
 
         // Different subscriber, different channel.
         messenger.Register(subscriber2, channel3, (CountObject obj) =>
         {
-            count3 += obj.Value;
-            return Task.CompletedTask;
+            lock (updateLock)
+            {
+                count3 += obj.Value;
+                return Task.CompletedTask;
+            }
         });
 
         // Different subscriber, same channel.
         messenger.Register(subscriber3, channel1, (CountObject obj) =>
         {
-            count4 += obj.Value;
-            return Task.CompletedTask;
+            lock (updateLock)
+            {
+                count4 += obj.Value;
+                return Task.CompletedTask;
+            }
         });
 
         var range = Enumerable.Range(0, sendCount);
