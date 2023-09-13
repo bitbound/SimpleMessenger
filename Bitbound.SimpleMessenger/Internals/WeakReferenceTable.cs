@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Nihs.SimpleMessenger.Internals;
+namespace Bitbound.SimpleMessenger.Internals;
 
 internal class WeakReferenceTable
 {

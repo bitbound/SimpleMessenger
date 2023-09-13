@@ -9,7 +9,7 @@
     <Description>A simple, lightweight event messenger that uses a ConditionalWeakTable internally.</Description>
     <Copyright>(c) Jared Goodwin 2023</Copyright>
     <PackageProjectUrl>https://github.com/lucent-sea/SimpleMessenger</PackageProjectUrl>
-    <PackageIcon>nihs.png</PackageIcon>
+    <PackageIcon>bitbound.png</PackageIcon>
     <RepositoryUrl>https://github.com/lucent-sea/SimpleMessenger</RepositoryUrl>
     <PackageTags>messenger;messaging;pub/sub;eventing;</PackageTags>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\.assets\nihs.png">
+    <None Include="..\.assets\bitbound.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

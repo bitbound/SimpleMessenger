@@ -1,4 +1,4 @@
-﻿using Nihs.SimpleMessenger.Internals;
+﻿using Bitbound.SimpleMessenger.Internals;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace Nihs.SimpleMessenger;
+namespace Bitbound.SimpleMessenger;
 
 /// <summary>
 /// A service for sending and receiving messages between decoupled objects.

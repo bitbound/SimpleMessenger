@@ -1,14 +1,15 @@
 # SimpleMessenger
 A simple, lightweight event messenger that uses a `ConditionalWeakTable` internally.
+Handlers are automatically removed when the subscriber is garbage-collected.
 
-NuGet: https://www.nuget.org/packages/Nihs.SimpleMessenger
+NuGet: https://www.nuget.org/packages/Bitbound.SimpleMessenger
 
 
 ### Usage
 
 ``` C#
 // Program.cs
-using Nihs.SimpleMessenger;
+using Bitbound.SimpleMessenger;
 
 // ...
 

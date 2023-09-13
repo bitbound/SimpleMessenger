@@ -1,4 +1,4 @@
-namespace Nihs.SimpleMessenger.Tests;
+namespace Bitbound.SimpleMessenger.Tests;
 
 [TestClass]
 public class WeakReferenceMessengerTests
