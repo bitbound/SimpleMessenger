@@ -4,66 +4,6 @@ namespace Bitbound.SimpleMessenger.Tests;
 public class WeakReferenceMessengerTests
 {
     [TestMethod]
-    public async Task Send_GivenSubscriberHasBeenGCed_DoesNotInvokeHandler()
-    {
-        var messenger = new WeakReferenceMessenger();
-        var count = 0;
-
-        await Task.Run(async () =>
-        {
-            var subscriber = new object();
-            messenger.Register<CountObject>(subscriber, obj =>
-            {
-                count += obj.Value;
-                return Task.CompletedTask;
-            });
-
-            await messenger.Send(new CountObject(3));
-            Assert.AreEqual(3, count);
-
-            await messenger.Send(new CountObject(7));
-            Assert.AreEqual(10, count);
-        });
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-
-        var exceptions = await messenger.Send(new CountObject(5));
-        // The value should not change here because the subscriber
-        // has been garbage-collected.
-        Assert.AreEqual(10, count);
-        Assert.AreEqual(0, exceptions.Count);
-    }
-
-    [TestMethod]
-    public async Task Send_GivenSubscriberExplicitlyUnregistered_DoesNotInvokeHandler()
-    {
-        var messenger = new WeakReferenceMessenger();
-        var count = 0;
-
-        var subscriber = new object();
-        messenger.Register<CountObject>(subscriber, obj =>
-        {
-            count += obj.Value;
-            return Task.CompletedTask;
-        });
-
-        await messenger.Send(new CountObject(3));
-        Assert.AreEqual(3, count);
-
-        await messenger.Send(new CountObject(7));
-        Assert.AreEqual(10, count);
-
-        messenger.Unregister<CountObject>(subscriber);
-
-        var exceptions = await messenger.Send(new CountObject(5));
-        // The value should not change here because the subscriber
-        // has been garbage-collected.
-        Assert.AreEqual(10, count);
-        Assert.AreEqual(0, exceptions.Count);
-    }
-
-    [TestMethod]
     public async Task Send_GivenDifferentChannelsDifferentTypes_MessagesAreSentToCorrectChannels()
     {
         var messenger = new WeakReferenceMessenger();
@@ -267,6 +207,168 @@ public class WeakReferenceMessengerTests
         Assert.AreEqual(1, exceptions.Count);
         Assert.IsInstanceOfType(exceptions[0], typeof(InvalidOperationException));
         Assert.AreEqual("Test", exceptions[0].Message);
+    }
+
+    [TestMethod]
+    public async Task Send_GivenSubscriberExplicitlyUnregistered_DoesNotInvokeHandler()
+    {
+        var messenger = new WeakReferenceMessenger();
+        var count = 0;
+
+        var subscriber = new object();
+        messenger.Register<CountObject>(subscriber, obj =>
+        {
+            count += obj.Value;
+            return Task.CompletedTask;
+        });
+
+        await messenger.Send(new CountObject(3));
+        Assert.AreEqual(3, count);
+
+        await messenger.Send(new CountObject(7));
+        Assert.AreEqual(10, count);
+
+        messenger.Unregister<CountObject>(subscriber);
+
+        var exceptions = await messenger.Send(new CountObject(5));
+        // The value should not change here because the subscriber
+        // has been garbage-collected.
+        Assert.AreEqual(10, count);
+        Assert.AreEqual(0, exceptions.Count);
+    }
+
+    [TestMethod]
+    public async Task Send_GivenSubscriberHasBeenGCed_DoesNotInvokeHandler()
+    {
+        var messenger = new WeakReferenceMessenger();
+        var count = 0;
+
+        await Task.Run(async () =>
+        {
+            var subscriber = new object();
+            messenger.Register<CountObject>(subscriber, obj =>
+            {
+                count += obj.Value;
+                return Task.CompletedTask;
+            });
+
+            await messenger.Send(new CountObject(3));
+            Assert.AreEqual(3, count);
+
+            await messenger.Send(new CountObject(7));
+            Assert.AreEqual(10, count);
+        });
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        var exceptions = await messenger.Send(new CountObject(5));
+        // The value should not change here because the subscriber
+        // has been garbage-collected.
+        Assert.AreEqual(10, count);
+        Assert.AreEqual(0, exceptions.Count);
+    }
+
+    [TestMethod]
+    public void UnregisterAll_GivenMultipleChannelSubscriptions_Ok()
+    {
+        var messenger = new WeakReferenceMessenger();
+
+        var channel1 = "channel1";
+        var channel2 = "channel2";
+        var channel3 = "channel3";
+
+        var subscriber1 = new object();
+        var subscriber2 = new object();
+        var subscriber3 = new object();
+
+        var channels = new[] { channel1, channel2, channel3 };
+        var subscribers = new[] { subscriber1, subscriber2, subscriber3 };
+
+        foreach (var channel in channels)
+        {
+            foreach (var subscriber in subscribers)
+            {
+                messenger.Register(subscriber, channel, (CountObject obj) => Task.CompletedTask);
+            }
+        }
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel3));
+
+        messenger.UnregisterAll(subscriber1);
+
+        Assert.IsFalse(messenger.IsRegistered<CountObject, string>(subscriber1, channel1));
+        Assert.IsFalse(messenger.IsRegistered<CountObject, string>(subscriber1, channel2));
+        Assert.IsFalse(messenger.IsRegistered<CountObject, string>(subscriber1, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel3));
+    }
+
+    [TestMethod]
+    public void UnregisterAll_GivenMultipleChannelSubscriptionsAndSpecificChannelToUnregister_Ok()
+    {
+        var messenger = new WeakReferenceMessenger();
+
+        var channel1 = "channel1";
+        var channel2 = "channel2";
+        var channel3 = "channel3";
+
+        var subscriber1 = new object();
+        var subscriber2 = new object();
+        var subscriber3 = new object();
+
+        var channels = new[] { channel1, channel2, channel3 };
+        var subscribers = new[] { subscriber1, subscriber2, subscriber3 };
+
+        foreach (var channel in channels)
+        {
+            foreach (var subscriber in subscribers)
+            {
+                messenger.Register(subscriber, channel, (CountObject obj) => Task.CompletedTask);
+            }
+        }
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel3));
+
+        messenger.UnregisterAll(subscriber1, channel2);
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel1));
+        Assert.IsFalse(messenger.IsRegistered<CountObject, string>(subscriber1, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber1, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber2, channel3));
+
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel1));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel2));
+        Assert.IsTrue(messenger.IsRegistered<CountObject, string>(subscriber3, channel3));
     }
 
     private class CountObject
