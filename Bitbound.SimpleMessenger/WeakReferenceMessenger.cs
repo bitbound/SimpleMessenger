@@ -52,8 +52,8 @@ public interface IMessenger
     /// <returns>A token that, when disposed, will unregister the handler.</returns>
     IDisposable Register<TMessage, TChannel>(
         object subscriber, 
-        TChannel channel, 
-        Func<TMessage, Task> handler)
+        TChannel channel,
+        RegistrationCallback<TMessage> handler)
             where TMessage : class
             where TChannel : IEquatable<TChannel>;
 
@@ -65,7 +65,7 @@ public interface IMessenger
     /// <param name="subscriber"></param>
     /// <param name="handler"></param>
     /// <returns>A token that, when disposed, will unregister the handler.</returns>
-    IDisposable Register<TMessage>(object subscriber, Func<TMessage, Task> handler)
+    IDisposable Register<TMessage>(object subscriber, RegistrationCallback<TMessage> handler)
         where TMessage : class;
 
     /// <summary>
@@ -148,14 +148,19 @@ public class WeakReferenceMessenger : IMessenger
     }
 
     /// <inheritdoc />
-    public IDisposable Register<TMessage>(object subscriber, Func<TMessage, Task> handler)
+    public IDisposable Register<TMessage>(
+        object subscriber, 
+        RegistrationCallback<TMessage> handler)
         where TMessage : class
     {
         return Register(subscriber, DefaultChannel.Instance, handler);
     }
 
     /// <inheritdoc />
-    public IDisposable Register<TMessage, TChannel>(object subscriber, TChannel channel, Func<TMessage, Task> handler)
+    public IDisposable Register<TMessage, TChannel>(
+        object subscriber, 
+        TChannel channel, 
+        RegistrationCallback<TMessage> handler)
         where TMessage : class
         where TChannel : IEquatable<TChannel>
     {
@@ -195,14 +200,16 @@ public class WeakReferenceMessenger : IMessenger
         where TMessage : class
         where TChannel : IEquatable<TChannel>
     {
-        var handlers = await GetHandlers<TMessage, TChannel>(channel);
+        var subscriberRefs = await GetSubscribers<TMessage, TChannel>(channel);
         var exceptions = new List<Exception>();
 
-        foreach (var handler in handlers)
+        foreach (var subscriberRef in subscriberRefs)
         {
             try
             {
-                await handler.Invoke(message);
+                var handler = subscriberRef.Handler;
+                var subscriber = subscriberRef.Subscriber;
+                await handler.Invoke(subscriber, message);
             }
             catch (Exception ex)
             {
@@ -236,7 +243,7 @@ public class WeakReferenceMessenger : IMessenger
         }
     }
 
-    private async Task<IEnumerable<Func<TMessage, Task>>> GetHandlers<TMessage, TChannel>(TChannel channel)
+    private async Task<IEnumerable<SubscriberReference<TMessage>>> GetSubscribers<TMessage, TChannel>(TChannel channel)
         where TMessage : class
         where TChannel : IEquatable<TChannel>
     {
@@ -244,7 +251,7 @@ public class WeakReferenceMessenger : IMessenger
         try
         {
             var table = GetWeakReferenceTable<TMessage, TChannel>(channel);
-            return table.GetHandlers<TMessage>();
+            return table.GetSubscribers<TMessage>();
         }
         finally
         {

@@ -14,7 +14,7 @@ internal class WeakReferenceTable
     private readonly object _tableLock = new();
     private readonly ConditionalWeakTable<object, object?> _weakTable = new();
 
-    internal void AddOrUpdate<TMessage>(object subscriber, Func<TMessage, Task> handler)
+    internal void AddOrUpdate<TMessage>(object subscriber, RegistrationCallback<TMessage> handler)
     {
         lock (_tableLock)
         {
@@ -22,13 +22,16 @@ internal class WeakReferenceTable
         }
     }
 
-    internal IEnumerable<Func<TMessage, Task>> GetHandlers<TMessage>()
+    internal IEnumerable<SubscriberReference<TMessage>> GetSubscribers<TMessage>()
     {
         lock (_tableLock)
         {
+
             return _weakTable
-                .Select(x => x.Value)
-                .OfType<Func<TMessage, Task>>()
+                .Where(x => x.Value is RegistrationCallback<TMessage>)
+                .Select(x => new SubscriberReference<TMessage>(
+                    x.Key, 
+                    (RegistrationCallback<TMessage>)x.Value!))
                 .ToImmutableArray();
         }
     }
