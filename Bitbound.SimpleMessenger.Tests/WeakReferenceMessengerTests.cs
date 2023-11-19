@@ -36,6 +36,34 @@ public class WeakReferenceMessengerTests
     }
 
     [TestMethod]
+    public async Task Send_GivenRegistrationTokenDisposed_DoesNotInvokeHandler()
+    {
+        var messenger = new WeakReferenceMessenger();
+        var count = 0;
+
+        var subscriber = new object();
+        var token = messenger.Register<CountObject>(subscriber, obj =>
+        {
+            count += obj.Value;
+            return Task.CompletedTask;
+        });
+
+        await messenger.Send(new CountObject(3));
+        Assert.AreEqual(3, count);
+
+        await messenger.Send(new CountObject(7));
+        Assert.AreEqual(10, count);
+
+        token.Dispose();
+
+        var exceptions = await messenger.Send(new CountObject(5));
+        // The value should not change here because the subscriber
+        // has been garbage-collected.
+        Assert.AreEqual(10, count);
+        Assert.AreEqual(0, exceptions.Count);
+    }
+
+    [TestMethod]
     public async Task Send_GivenSubscriberExplicitlyUnregistered_DoesNotInvokeHandler()
     {
         var messenger = new WeakReferenceMessenger();

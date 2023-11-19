@@ -49,8 +49,8 @@ public interface IMessenger
     /// <param name="subscriber"></param>
     /// <param name="channel"></param>
     /// <param name="handler"></param>
-    /// <returns></returns>
-    void Register<TMessage, TChannel>(
+    /// <returns>A token that, when disposed, will unregister the handler.</returns>
+    IDisposable Register<TMessage, TChannel>(
         object subscriber, 
         TChannel channel, 
         Func<TMessage, Task> handler)
@@ -64,8 +64,8 @@ public interface IMessenger
     /// <typeparam name="TMessage"></typeparam>
     /// <param name="subscriber"></param>
     /// <param name="handler"></param>
-    /// <returns></returns>
-    void Register<TMessage>(object subscriber, Func<TMessage, Task> handler)
+    /// <returns>A token that, when disposed, will unregister the handler.</returns>
+    IDisposable Register<TMessage>(object subscriber, Func<TMessage, Task> handler)
         where TMessage : class;
 
     /// <summary>
@@ -148,14 +148,14 @@ public class WeakReferenceMessenger : IMessenger
     }
 
     /// <inheritdoc />
-    public void Register<TMessage>(object subscriber, Func<TMessage, Task> handler)
+    public IDisposable Register<TMessage>(object subscriber, Func<TMessage, Task> handler)
         where TMessage : class
     {
-        Register(subscriber, DefaultChannel.Instance, handler);
+        return Register(subscriber, DefaultChannel.Instance, handler);
     }
 
     /// <inheritdoc />
-    public void Register<TMessage, TChannel>(object subscriber, TChannel channel, Func<TMessage, Task> handler)
+    public IDisposable Register<TMessage, TChannel>(object subscriber, TChannel channel, Func<TMessage, Task> handler)
         where TMessage : class
         where TChannel : IEquatable<TChannel>
     {
@@ -171,6 +171,11 @@ public class WeakReferenceMessenger : IMessenger
             }
 
             table.AddOrUpdate(subscriber, handler);
+
+            return new RegistrationToken(() =>
+            {
+                Unregister<TMessage, TChannel>(subscriber, channel);
+            });
         }
         finally
         {
