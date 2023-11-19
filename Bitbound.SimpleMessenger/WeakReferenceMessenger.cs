@@ -295,7 +295,7 @@ public class WeakReferenceMessenger : IMessenger
         }
     }
 
-    private async Task<IEnumerable<Func<TMessage, Task>>> GetHandlers<TMessage, TChannel>(TChannel channel)
+    private async Task<IEnumerable<SubscriberReference<TMessage>>> GetSubscribers<TMessage, TChannel>(TChannel channel)
         where TMessage : class
         where TChannel : IEquatable<TChannel>
     {
