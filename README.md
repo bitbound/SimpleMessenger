@@ -29,7 +29,7 @@ public class MyService : IMyService
         messenger.Register<SomeMessageType>(this, MyHandler);
     }
 
-    private async Task MyHandler(SomeMessageType message)
+    private async Task MyHandler(object subscriber, SomeMessageType message)
     {
         // Handle the message.
     }
