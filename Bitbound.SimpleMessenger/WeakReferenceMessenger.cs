@@ -1,13 +1,6 @@
 ﻿using Bitbound.SimpleMessenger.Internals;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace Bitbound.SimpleMessenger;
 
@@ -19,7 +12,7 @@ namespace Bitbound.SimpleMessenger;
 public interface IMessenger
 {
     /// <summary>
-    /// Whether the specified subscriber is registered for a particular 
+    /// Whether the specified subscriber is registered for a particular
     /// message type and channel.
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
@@ -32,7 +25,7 @@ public interface IMessenger
         where TChannel : IEquatable<TChannel>;
 
     /// <summary>
-    /// Whether the specified subscriber is registered for a particular 
+    /// Whether the specified subscriber is registered for a particular
     /// message type under the default channel.
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
@@ -58,7 +51,7 @@ public interface IMessenger
             where TChannel : IEquatable<TChannel>;
 
     /// <summary>
-    /// Registers the subscriber using the specified message type and handler, 
+    /// Registers the subscriber using the specified message type and handler,
     /// under the default channel.
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
@@ -109,8 +102,24 @@ public interface IMessenger
     /// <returns></returns>
     void Unregister<TMessage>(object subscriber)
         where TMessage : class;
-}
 
+    /// <summary>
+    /// Unregister all handlers for the subscriber on the default channel.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <param name="subscriber"></param>
+    /// <returns></returns>
+    void UnregisterAll(object subscriber);
+
+    /// <summary>
+    /// Unregister all handlers for the subscriber on the given channel.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <param name="subscriber"></param>
+    /// <returns></returns>
+    void UnregisterAll<TChannel>(object subscriber, TChannel channel)
+        where TChannel : IEquatable<TChannel>;
+}
 
 /// <summary>
 /// An implementation of <see cref="IMessenger"/> that will automatically remove
@@ -243,7 +252,50 @@ public class WeakReferenceMessenger : IMessenger
         }
     }
 
-    private async Task<IEnumerable<SubscriberReference<TMessage>>> GetSubscribers<TMessage, TChannel>(TChannel channel)
+    /// <inheritdoc />
+    public void UnregisterAll(object subscriber)
+    {
+        _registrationLock.Wait();
+        try
+        {
+            foreach (var channelMap in _subscribers.Values)
+            {
+                foreach (var table in channelMap.Values)
+                {
+                    _ = table.Remove(subscriber);
+                }
+            }
+        }
+        finally
+        {
+            _registrationLock.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public void UnregisterAll<TChannel>(object subscriber, TChannel channel)
+        where TChannel : IEquatable<TChannel>
+    {
+        _registrationLock.Wait();
+        try
+        {
+            var channels = _subscribers.Where(x => x.Key.ChannelType == typeof(TChannel));
+
+            foreach (var channelMap in channels)
+            {
+                if (channelMap.Value.TryGetValue(channel, out var table))
+                {
+                    _ = table.Remove(subscriber);
+                }
+            }
+        }
+        finally
+        {
+            _registrationLock.Release();
+        }
+    }
+
+    private async Task<IEnumerable<Func<TMessage, Task>>> GetHandlers<TMessage, TChannel>(TChannel channel)
         where TMessage : class
         where TChannel : IEquatable<TChannel>
     {
@@ -258,6 +310,7 @@ public class WeakReferenceMessenger : IMessenger
             _registrationLock.Release();
         }
     }
+
     private WeakReferenceTable GetWeakReferenceTable<TMessage, TChannel>(TChannel channel)
         where TMessage : class
         where TChannel : IEquatable<TChannel>
