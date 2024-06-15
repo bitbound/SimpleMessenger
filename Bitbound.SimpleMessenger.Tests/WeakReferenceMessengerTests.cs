@@ -207,16 +207,24 @@ public class WeakReferenceMessengerTests
     [TestMethod]
     public async Task Send_GivenHandlerThrows_ReturnsException()
     {
+        var subscriber1 = new object();
+        var subscriber2 = new object();
+        var subscriber3 = new object();
+        var subscribers = new[] { subscriber1, subscriber2, subscriber3 };
+
         var messenger = new WeakReferenceMessenger();
 
-        messenger.Register(this, (object sender, CountObject message) =>
+        foreach (var subscriber in subscribers)
         {
-            throw new InvalidOperationException("Test");
-        });
+            messenger.Register(subscriber, (object sender, CountObject message) =>
+            {
+                throw new InvalidOperationException("Test");
+            });
+        }
 
         var exceptions = await messenger.Send(new CountObject(5));
 
-        Assert.AreEqual(1, exceptions.Count);
+        Assert.AreEqual(3, exceptions.Count);
         Assert.IsInstanceOfType(exceptions[0], typeof(InvalidOperationException));
         Assert.AreEqual("Test", exceptions[0].Message);
     }
