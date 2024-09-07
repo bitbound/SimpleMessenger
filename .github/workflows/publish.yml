@@ -1,0 +1,25 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: "Is Prerelease"
+        type: boolean
+        required: true
+        default: true
+
+permissions: write-all
+
+jobs:
+  service_defaults_nugets:
+    uses: bitbound/workflows/.github/workflows/publish-nugets.yml@main
+    with:
+      projectOrSlnDir: "./Bitbound.SimpleMessenger"
+      prerelease: "${{ inputs.prerelease || github.event_name != 'workflow_dispatch' }}"
+      majorVersion: 2
+      minorVersion: 3
