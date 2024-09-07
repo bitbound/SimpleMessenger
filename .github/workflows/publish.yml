@@ -16,8 +16,10 @@ on:
 permissions: write-all
 
 jobs:
-  service_defaults_nugets:
+  publish:
     uses: bitbound/workflows/.github/workflows/publish-nugets.yml@main
+    secrets: 
+      registryApiKey: ${{ secrets.NUGET_API_KEY }}
     with:
       projectOrSlnDir: "./Bitbound.SimpleMessenger"
       prerelease: "${{ inputs.prerelease || github.event_name != 'workflow_dispatch' }}"
