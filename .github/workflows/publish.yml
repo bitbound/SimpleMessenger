@@ -25,3 +25,4 @@ jobs:
       prerelease: "${{ inputs.prerelease || github.event_name != 'workflow_dispatch' }}"
       majorVersion: 2
       minorVersion: 3
+      runTests: true
