@@ -20,6 +20,8 @@ jobs:
     uses: bitbound/workflows/.github/workflows/publish-nugets.yml@main
     secrets: 
       registryApiKey: ${{ secrets.NUGET_API_KEY }}
+      pfxBase64: ${{ secrets.PFX_BASE64 }}
+      pfxPassword: ${{ secrets.PFX_PASSWORD }}
     with:
       projectOrSlnDir: "./Bitbound.SimpleMessenger"
       prerelease: "${{ inputs.prerelease || github.event_name != 'workflow_dispatch' }}"
