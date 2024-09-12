@@ -8,9 +8,9 @@
     <Title>SimpleMessenger</Title>
     <Description>A simple, lightweight event messenger that uses a ConditionalWeakTable internally.</Description>
     <Copyright>(c) Jared Goodwin 2024</Copyright>
-    <PackageProjectUrl>https://github.com/lucent-sea/SimpleMessenger</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/bitbound/SimpleMessenger</PackageProjectUrl>
     <PackageIcon>bitbound.png</PackageIcon>
-    <RepositoryUrl>https://github.com/lucent-sea/SimpleMessenger</RepositoryUrl>
+    <RepositoryUrl>https://github.com/bitbound/SimpleMessenger</RepositoryUrl>
     <PackageTags>messenger;messaging;pub/sub;eventing;</PackageTags>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
