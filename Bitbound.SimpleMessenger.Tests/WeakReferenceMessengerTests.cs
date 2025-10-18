@@ -22,7 +22,7 @@ public class WeakReferenceMessengerTests
 
         messenger.Register(subscriber1, channel1, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber1);
+            Assert.AreSame(sub, subscriber1);
             count1 += obj.Value;
             return Task.CompletedTask;
         });
@@ -30,7 +30,7 @@ public class WeakReferenceMessengerTests
         // Same subscriber, different channel.
         messenger.Register(subscriber1, channel2, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber1);
+            Assert.AreSame(sub, subscriber1);
             count2 += obj.Value;
             return Task.CompletedTask;
         });
@@ -38,7 +38,7 @@ public class WeakReferenceMessengerTests
         // Different subscriber, different channel.
         messenger.Register(subscriber2, channel3, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber2);
+            Assert.AreSame(sub, subscriber2);
             count3 += obj.Value;
             return Task.CompletedTask;
         });
@@ -46,7 +46,7 @@ public class WeakReferenceMessengerTests
         // Different subscriber, same channel.
         messenger.Register(subscriber3, channel1, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber3);
+            Assert.AreSame(sub, subscriber3);
             count4 += obj.Value;
             return Task.CompletedTask;
         });
@@ -83,7 +83,7 @@ public class WeakReferenceMessengerTests
 
         messenger.Register(subscriber1, channel1, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber1);
+            Assert.AreSame(sub, subscriber1);
             count1 += obj.Value;
             return Task.CompletedTask;
         });
@@ -91,7 +91,7 @@ public class WeakReferenceMessengerTests
         // Same subscriber, different channel.
         messenger.Register(subscriber1, channel2, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber1);
+            Assert.AreSame(sub, subscriber1);
             count2 += obj.Value;
             return Task.CompletedTask;
         });
@@ -99,7 +99,7 @@ public class WeakReferenceMessengerTests
         // Different subscriber, different channel.
         messenger.Register(subscriber2, channel3, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber2);
+            Assert.AreSame(sub, subscriber2);
             count3 += obj.Value;
             return Task.CompletedTask;
         });
@@ -107,7 +107,7 @@ public class WeakReferenceMessengerTests
         // Different subscriber, same channel.
         messenger.Register(subscriber3, channel1, (object sub, CountObject obj) =>
         {
-            Assert.ReferenceEquals(sub, subscriber3);
+            Assert.AreSame(sub, subscriber3);
             count4 += obj.Value;
             return Task.CompletedTask;
         });
@@ -148,7 +148,7 @@ public class WeakReferenceMessengerTests
         {
             lock (updateLock)
             {
-                Assert.ReferenceEquals(sub, subscriber1);
+                Assert.AreSame(sub, subscriber1);
                 count1 += obj.Value;
                 return Task.CompletedTask;
             }
@@ -159,7 +159,7 @@ public class WeakReferenceMessengerTests
         {
             lock (updateLock)
             {
-                Assert.ReferenceEquals(sub, subscriber1);
+                Assert.AreSame(sub, subscriber1);
                 count2 += obj.Value;
                 return Task.CompletedTask;
             }
@@ -170,7 +170,7 @@ public class WeakReferenceMessengerTests
         {
             lock (updateLock)
             {
-                Assert.ReferenceEquals(sub, subscriber2);
+                Assert.AreSame(sub, subscriber2);
                 count3 += obj.Value;
                 return Task.CompletedTask;
             }
@@ -181,7 +181,7 @@ public class WeakReferenceMessengerTests
         {
             lock (updateLock)
             {
-                Assert.ReferenceEquals(sub, subscriber3);
+                Assert.AreSame(sub, subscriber3);
                 count4 += obj.Value;
                 return Task.CompletedTask;
             }
@@ -238,7 +238,7 @@ public class WeakReferenceMessengerTests
         var subscriber = new object();
         var token = messenger.Register<CountObject>(subscriber, (sub, message) =>
         {
-            Assert.ReferenceEquals(sub, subscriber);
+            Assert.AreSame(sub, subscriber);
             count += message.Value;
             return Task.CompletedTask;
         });
@@ -267,7 +267,7 @@ public class WeakReferenceMessengerTests
         var subscriber = new object();
         messenger.Register<CountObject>(subscriber, (sub, message) =>
         {
-            Assert.ReferenceEquals(sub, subscriber);
+            Assert.AreSame(sub, subscriber);
             count += message.Value;
             return Task.CompletedTask;
         });
@@ -298,7 +298,7 @@ public class WeakReferenceMessengerTests
             var subscriber = new object();
             messenger.Register<CountObject>(subscriber, (sub, message) =>
             {
-                Assert.ReferenceEquals(sub, subscriber);
+                Assert.AreSame(sub, subscriber);
                 count += message.Value;
                 return Task.CompletedTask;
             });
