@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0;</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0;</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Authors>Jared Goodwin</Authors>
     <Title>SimpleMessenger</Title>
     <Description>A simple, lightweight event messenger that uses a ConditionalWeakTable internally.</Description>
-    <Copyright>(c) Jared Goodwin 2025</Copyright>
+    <Copyright>©️ $([System.DateTime]::Now.Year) Jared Goodwin</Copyright>
     <PackageProjectUrl>https://github.com/bitbound/SimpleMessenger</PackageProjectUrl>
     <PackageIcon>bitbound.png</PackageIcon>
     <RepositoryUrl>https://github.com/bitbound/SimpleMessenger</RepositoryUrl>

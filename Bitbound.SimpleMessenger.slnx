@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.assets/">
+    <File Path=".assets/bitbound.png" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/" />
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/publish.yml" />
+  </Folder>
+  <Project Path="Bitbound.SimpleMessenger.Tests/Bitbound.SimpleMessenger.Tests.csproj" />
+  <Project Path="Bitbound.SimpleMessenger/Bitbound.SimpleMessenger.csproj" />
+</Solution>
