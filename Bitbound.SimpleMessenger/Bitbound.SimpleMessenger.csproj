@@ -15,18 +15,10 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-		<Deterministic>true</Deterministic>
-		<DebugType>portable</DebugType>
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>embedded</DebugType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>embedded</DebugType>
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
