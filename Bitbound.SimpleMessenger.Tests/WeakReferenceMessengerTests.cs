@@ -224,7 +224,7 @@ public class WeakReferenceMessengerTests
 
         var exceptions = await messenger.Send(new CountObject(5));
 
-        Assert.AreEqual(3, exceptions.Count);
+        Assert.HasCount(3, exceptions);
         Assert.IsInstanceOfType(exceptions[0], typeof(InvalidOperationException));
         Assert.AreEqual("Test", exceptions[0].Message);
     }
@@ -255,7 +255,7 @@ public class WeakReferenceMessengerTests
         // The value should not change here because the subscriber
         // has been garbage-collected.
         Assert.AreEqual(10, count);
-        Assert.AreEqual(0, exceptions.Count);
+        Assert.IsEmpty(exceptions);
     }
 
     [TestMethod]
@@ -284,7 +284,7 @@ public class WeakReferenceMessengerTests
         // The value should not change here because the subscriber
         // has been garbage-collected.
         Assert.AreEqual(10, count);
-        Assert.AreEqual(0, exceptions.Count);
+        Assert.IsEmpty(exceptions);
     }
 
     [TestMethod]
@@ -317,7 +317,7 @@ public class WeakReferenceMessengerTests
         // The value should not change here because the subscriber
         // has been garbage-collected.
         Assert.AreEqual(10, count);
-        Assert.AreEqual(0, exceptions.Count);
+        Assert.IsEmpty(exceptions);
     }
     [TestMethod]
     public void UnregisterAll_GivenMultipleChannelSubscriptions_Ok()
